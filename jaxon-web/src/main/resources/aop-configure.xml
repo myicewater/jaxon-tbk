@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xmlns:ehcache="http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans       http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                        http://www.springframework.org/schema/context     http://www.springframework.org/schema/context/spring-context-3.0.xsd
+                        http://www.springframework.org/schema/aop         http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+      					http://www.springframework.org/schema/tx      http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+      					http://code.alibabatech.com/schema/dubbo      http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+      					http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring      http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring/ehcache-spring-1.1.xsd
+      					http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-3.1.xsd">
+	
+
+	<!-- 日志切面 -->
+    <bean id="methodIOLog" class="com.jaxon.log.MethodAop" >
+    	<!-- 是否打印接口输入输出参数、时间耗时日志 (必填) -->
+    	<property name="showParam" value="true"></property>
+    	<!-- 项目名称 (必填) -->
+    	<property name="projectName" value="jaxon"></property>
+    	<!-- 方法类型：0-action调用，1-service调用，2-dao调用  (必填)-->
+    	<property name="methodType" value="1"></property>
+    	<!-- 调用方式：0-调用自己系统方法  1-调用其他系统方法 (必填) -->
+    	<property name="invokeType" value="1"></property>
+    	<!-- 是否发送接口耗时记录统计，如果不发送则只进行接口入参出参耗时日志打印，为了兼容消费者不存在情况 -->
+    	<property name="isSendMq" value="false"></property>
+    </bean>
+	<!--eg: execution(* com.gooagoo.member.service.UserService.*(..))-->
+    <aop:config>
+		<aop:pointcut id="serviceMethods" expression="
+		execution(* com.jaxon.demo.service.TestService.*(..))
+		" />	
+		<aop:aspect ref="methodIOLog">
+			<aop:around pointcut-ref="serviceMethods" method="doAround" />
+		</aop:aspect>
+    </aop:config>
+    
+    
+    <!-- Controller 日志切面 -->
+    <bean id="controllerAop" class="com.jaxon.log.MethodAop" >
+    	<!-- 是否打印接口输入输出参数、时间耗时日志 (必填) -->
+    	<property name="showParam" value="true"></property>
+    	<!-- 项目名称 (必填) -->
+    	<property name="projectName" value="jaxon"></property>
+    	<!-- 方法类型：0-action调用，1-service调用，2-dao调用  (必填)-->
+    	<property name="methodType" value="0"></property>
+    	<!-- 调用方式：0-调用自己系统方法  1-调用其他系统方法 (必填) -->
+    	<property name="invokeType" value="0"></property>
+    	<!-- 是否发送接口耗时记录统计，如果不发送则只进行接口入参出参耗时日志打印，为了兼容消费者不存在情况 -->
+    	<property name="isSendMq" value="false"></property>
+    </bean>
+    <aop:config>
+		<aop:pointcut id="controllerMethods" expression="
+		@annotation(org.springframework.web.bind.annotation.RequestMapping)
+		" />	
+		<aop:aspect ref="controllerAop">
+			<aop:around pointcut-ref="controllerMethods" method="doAround" />
+		</aop:aspect>
+    </aop:config>
+
+</beans>
